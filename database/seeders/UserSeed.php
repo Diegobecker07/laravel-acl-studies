@@ -18,25 +18,25 @@ class UserSeed extends Seeder
         User::create([
             'name' => 'Super Admin',
             'email' => 'sa@email.com',
-            'password' => bcrypt(123),
+            'password' => bcrypt('123'),
         ])->roles()->attach(1);
 
         User::create([
             'name' => 'Admin',
             'email' => 'admin@email.com',
-            'password' => bcrypt(123),
+            'password' => bcrypt('123'),
         ])->roles()->attach(2);
 
         User::create([
             'name' => 'Author',
             'email' => 'author@email.com',
-            'password' => bcrypt(123),
+            'password' => bcrypt('123'),
         ])->roles()->attach(3);
 
         User::create([
             'name' => 'User',
             'email' => 'user@email.com',
-            'password' => bcrypt(123),
+            'password' => bcrypt('123'),
         ])->roles()->attach(4);
     }
 }
