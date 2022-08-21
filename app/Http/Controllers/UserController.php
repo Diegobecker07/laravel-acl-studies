@@ -2,14 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\User\CreateRequest;
+use App\Http\Requests\User\UpdateRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
-    public function __construct()
+    protected $user;
+
+    public function __construct(User $user)
     {
+        $this->user = $user;
+
         $this->middleware('can:read_user')->only('index', 'show');
         $this->middleware('can:create_user')->only('create', 'store');
         $this->middleware('can:edit_user')->only('edit', 'update');
@@ -17,27 +23,23 @@ class UserController extends Controller
 
     public function index()
     {
-        $users = User::paginate(10);
-        return view('user.index', compact('users'));
+        $users = $this->user->paginate(10);
+        return view('user.index', ['users' => $users]);
     }
 
     public function create()
     {
         $roles = Role::all();
-        return view('user.create', compact('roles'));
+        return view('user.create', ['roles' => $roles]);
     }
 
-    public function store(Request $request)
+    public function store(CreateRequest $request)
     {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6',
-            'role_id' => 'required',
-        ]);
+        $data = $request->validated();
+
         $data['password'] = bcrypt($data['password']);
 
-        $user = User::create($data);
+        $user = $this->user->create($data);
 
         $user->roles()->attach($data['role_id']);
 
@@ -49,24 +51,16 @@ class UserController extends Controller
         return view('user.show');
     }
 
-    public function edit($id)
+    public function edit(User $user)
     {
-        $user = User::findOrFail($id);
         $roles = Role::all();
 
-        return view('user.edit', compact('roles', 'user'));
+        return view('user.edit', ['roles' => $roles, 'user' => $user]);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateRequest $request, User $user)
     {
-        $data = $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|string|email|max:255',
-            'password' => 'sometimes',
-            'role_id' => 'sometimes',
-        ]);
-
-        $user = User::findOrFail($id);
+        $data = $request->validated();
 
         if(!$data['password']){
             $data['password'] = $user->password;
@@ -82,9 +76,8 @@ class UserController extends Controller
         return redirect()->route('users.index');
     }
 
-    public function destroy($id)
+    public function destroy(User $user)
     {
-        $user = User::findOrFail($id);
         $user->delete();
         return back();
     }
