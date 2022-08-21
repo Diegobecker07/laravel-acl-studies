@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', [\App\Http\Controllers\BlogController::class, 'index'])->name('index');
+Route::get('/post/{post}', [\App\Http\Controllers\BlogController::class, 'show'])->name('posts.more');
 
 Route::get('/dashboard', function () {
     return view('dashboard');

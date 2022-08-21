@@ -24,7 +24,7 @@ class PostController extends Controller
      */
     public function index()
     {
-        $posts = Post::when(auth()->user()->hasRole('Author'), function ($query){
+        $posts = Post::with('Author')->when(auth()->user()->hasRole('Author'), function ($query){
             return $query->where('user_id', auth()->user()->id);
         })->paginate(10);
         return view('post.index', compact('posts'));

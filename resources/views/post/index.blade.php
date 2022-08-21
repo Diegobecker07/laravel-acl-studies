@@ -17,6 +17,11 @@
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                             <tr>
+                                @if(!auth()->user()->hasRole('Author'))
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium font-medium text-gray-500 uppercase tracking-wider">
+                                        Autor
+                                    </th>
+                                @endif
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium font-medium text-gray-500 uppercase tracking-wider">
                                     Título
                                 </th>
@@ -35,6 +40,11 @@
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($posts as $post)
                                     <tr>
+                                        @if(!auth()->user()->hasRole('Author'))
+                                            <td class="px-6 py-4 whitespace-no-wrap text-sm leading-5 font-medium text-gray-900">
+                                                {{ $post->author->name }}
+                                            </td>
+                                        @endif
                                         <td class="px-6 py-4 whitespace-no-wrap text-sm leading-5 font-medium text-gray-900">
                                             {{ $post->title }}
                                         </td>
