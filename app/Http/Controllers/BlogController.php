@@ -8,7 +8,12 @@ class BlogController extends Controller
 {
     public function index()
     {
-        $posts = Post::paginate(10);
+        $posts = Post::with('author')->paginate(12);
         return view('blog', compact('posts'));
+    }
+
+    public function show(Post $post)
+    {
+        return view('more', ['post' => $post]);
     }
 }

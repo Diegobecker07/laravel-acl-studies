@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             PermissionSeed::class,
             RoleSeed::class,
             UserSeed::class,
+            PostSeeder::class,
         ]);
     }
 }
