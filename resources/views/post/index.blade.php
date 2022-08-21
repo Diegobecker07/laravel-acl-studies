@@ -52,7 +52,7 @@
                                             {{ $post->slug }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-no-wrap text-sm leading-5 text-gray-500">
-                                            {{ $post->status }}
+                                            {{ __($post->status) }}
                                         </td>
                                         @can('edit_post')
                                             <td class="px-6 py-4 whitespace-no-wrap text-sm leading-5 text-gray-500">

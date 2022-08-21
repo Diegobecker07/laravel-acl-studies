@@ -2,16 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PostRequest;
 use App\Models\Post;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class PostController extends Controller
 {
-    public function __construct()
+    protected $post;
+
+    public function __construct(Post $post)
     {
+        $this->post = $post;
         $this->middleware('can:read_post')->only('index', 'show');
         $this->middleware('can:create_post')->only('create', 'store');
         $this->middleware('can:edit_post')->only('edit', 'update');
@@ -24,7 +26,7 @@ class PostController extends Controller
      */
     public function index()
     {
-        $posts = Post::with('Author')->when(auth()->user()->hasRole('Author'), function ($query){
+        $posts = $this->post->with('Author')->when(auth()->user()->hasRole('Author'), function ($query){
             return $query->where('user_id', auth()->user()->id);
         })->paginate(10);
         return view('post.index', compact('posts'));
@@ -41,24 +43,19 @@ class PostController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  PostRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(PostRequest $request)
     {
-        $data = $request->validate([
-            'image' => 'required|image',
-            'title' => 'required',
-            'content' => 'required',
-            'status' => 'required',
-        ]);
-        $fileName = $data['title']. '.' .$data['image']->extension();
+        $data = $request->validated();
 
-        $data['image'] = $data['image']->storeAs('posts', $fileName, 'public');
+        $data['image'] = $this->post->uploadImage($data);
+
         $data['user_id'] = auth()->user()->id;
         $data['slug'] = Str::slug($data['title'], '-');
 
-        Post::create($data);
+        $this->post->create($data);
 
         return back();
     }
@@ -77,43 +74,33 @@ class PostController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int  $id
+     * @param  Post $post
      * @return \Illuminate\Http\Response
      */
     public function edit(Post $post)
     {
         $this->authorize('update', $post);
 
-        Post::findOrFail($post->id);
-
-        return view('post.edit', compact('post'));
+        return view('post.edit', ['post' => $post]);
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param  PostRequest  $request
+     * @param  Post $post
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(PostRequest $request, Post $post)
     {
-        $data = $request->validate([
-            'image' => 'sometimes|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'title' => 'sometimes',
-            'content' => 'sometimes',
-            'status' => 'sometimes',
-        ]);
-        $data['slug'] = Str::slug($data['title'], '-');
-
-        $post = Post::findOrFail($id);
-
         $this->authorize('update', $post);
 
+        $data = $request->validated();
+
+        $data['slug'] = Str::slug($data['title'], '-');
+
         if($request->hasFile('image')){
-            $fileName = $data['title']. '.' .$data['image']->extension();
-            Storage::delete(storage_path('app/public/'.$post->image));
-            $data['image'] = $data['image']->storeAs('posts', $fileName, 'public');
+            $data['image'] = $post->uploadImageUpdate($data);
         }
 
         $post->update($data);
@@ -124,13 +111,11 @@ class PostController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param  Post $post
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Post $post)
     {
-        $post = Post::findOrFail($id);
-
         $this->authorize('delete', $post);
 
         Storage::delete(storage_path('app/public/'.$post->image));
