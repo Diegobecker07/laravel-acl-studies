@@ -15,8 +15,9 @@ class RoleSeed extends Seeder
      */
     public function run()
     {
-        foreach (['Super Admin', 'Admin', 'Author', 'User'] as $name){
-            Role::create(['name' => $name]);
-        }
+        Role::create(['name' => 'Super Admin']);
+        Role::create(['name' => 'Admin'])->givePermissionTo('read_post', 'edit_post', 'create_post', 'delete_post', 'read_user', 'edit_user', 'create_user', 'delete_user');
+        Role::create(['name' => 'Author'])->givePermissionTo('read_post', 'edit_post', 'create_post', 'delete_post');
+        Role::create(['name' => 'User']);
     }
 }

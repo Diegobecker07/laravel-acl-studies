@@ -24,7 +24,9 @@ class PostController extends Controller
      */
     public function index()
     {
-        $posts = Post::paginate(10);
+        $posts = Post::when(auth()->user()->hasRole('Author'), function ($query){
+            return $query->where('user_id', auth()->user()->id);
+        })->paginate(10);
         return view('post.index', compact('posts'));
     }
 
@@ -45,7 +47,7 @@ class PostController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image' => 'required|image',
             'title' => 'required',
             'content' => 'required',
             'status' => 'required',
@@ -80,6 +82,8 @@ class PostController extends Controller
      */
     public function edit(Post $post)
     {
+        $this->authorize('update', $post);
+
         Post::findOrFail($post->id);
 
         return view('post.edit', compact('post'));
@@ -102,7 +106,10 @@ class PostController extends Controller
         ]);
         $data['slug'] = Str::slug($data['title'], '-');
 
-        $post = Post::findOrFail(id);
+        $post = Post::findOrFail($id);
+
+        $this->authorize('update', $post);
+
         if($request->hasFile('image')){
             $fileName = $data['title']. '.' .$data['image']->extension();
             Storage::delete(storage_path('app/public/'.$post->image));
@@ -123,6 +130,9 @@ class PostController extends Controller
     public function destroy($id)
     {
         $post = Post::findOrFail($id);
+
+        $this->authorize('delete', $post);
+
         Storage::delete(storage_path('app/public/'.$post->image));
         $post->delete();
         return redirect()->route('posts.index');

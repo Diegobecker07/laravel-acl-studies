@@ -1,10 +1,12 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">
-            <p>Usuários</p>
-            <a href="{{ route('posts.create') }}" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-                Cadastrar
-            </a>
+            <p>Posts</p>
+            @can('create_post')
+                <a href="{{ route('posts.create') }}" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                    Cadastrar
+                </a>
+            @endcan
         </div>
     </x-slot>
     <div class="px-4 my-2 py-5 bg-white space-y-6 sm:p-6">
@@ -42,16 +44,20 @@
                                         <td class="px-6 py-4 whitespace-no-wrap text-sm leading-5 text-gray-500">
                                             {{ $post->status }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-no-wrap text-sm leading-5 text-gray-500">
-                                            <a href="{{ route('posts.edit', $post->id) }}" class="text-indigo-600 hover:text-indigo-900">Editar</a>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-no-wrap text-right text-sm leading-5 font-medium">
-                                            <form action="{{ route('posts.destroy', $post->id) }}" method="post">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="text-red-600 hover:text-red-900">Excluir</button>
-                                            </form>
-                                        </td>
+                                        @can('edit_post')
+                                            <td class="px-6 py-4 whitespace-no-wrap text-sm leading-5 text-gray-500">
+                                                <a href="{{ route('posts.edit', $post->id) }}" class="text-indigo-600 hover:text-indigo-900">Editar</a>
+                                            </td>
+                                        @endcan
+                                        @can('delete_post')
+                                            <td class="px-6 py-4 whitespace-no-wrap text-right text-sm leading-5 font-medium">
+                                                <form action="{{ route('posts.destroy', $post->id) }}" method="post">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="text-red-600 hover:text-red-900">Excluir</button>
+                                                </form>
+                                            </td>
+                                        @endcan
                                     </tr>
                                 @endforeach
                             </tbody>
