@@ -15,7 +15,7 @@ class PermissionSeed extends Seeder
      */
     public function run()
     {
-        foreach (['read_post', 'write_post', 'edit_post', 'create_post'] as $name){
+        foreach (['read_post', 'write_post', 'edit_post', 'create_post', 'delete_post', 'read_user', 'edit_user', 'create_user', 'delete_user'] as $name){
             Permission::create(['name' => $name]);
         }
     }

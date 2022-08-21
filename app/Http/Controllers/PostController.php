@@ -2,10 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Post;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class PostController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('can:read_post')->only('index', 'show');
+        $this->middleware('can:create_post')->only('create', 'store');
+        $this->middleware('can:edit_post')->only('edit', 'update');
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -13,17 +24,16 @@ class PostController extends Controller
      */
     public function index()
     {
-        return view('post.index');
+        $posts = Post::paginate(10);
+        return view('post.index', compact('posts'));
     }
 
     /**
      * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(): View
     {
-        //
+        return view('post.create');
     }
 
     /**
@@ -34,7 +44,21 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $data = $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'title' => 'required',
+            'content' => 'required',
+            'status' => 'required',
+        ]);
+        $fileName = $data['title']. '.' .$data['image']->extension();
+
+        $data['image'] = $data['image']->storeAs('posts', $fileName, 'public');
+        $data['user_id'] = auth()->user()->id;
+        $data['slug'] = Str::slug($data['title'], '-');
+
+        Post::create($data);
+
+        return back();
     }
 
     /**
@@ -43,9 +67,9 @@ class PostController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Post $post)
     {
-        //
+        return view('post.show', compact('post'));
     }
 
     /**
@@ -54,9 +78,11 @@ class PostController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(Post $post)
     {
-        //
+        Post::findOrFail($post->id);
+
+        return view('post.edit', compact('post'));
     }
 
     /**
@@ -68,7 +94,24 @@ class PostController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $data = $request->validate([
+            'image' => 'sometimes|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'title' => 'sometimes',
+            'content' => 'sometimes',
+            'status' => 'sometimes',
+        ]);
+        $data['slug'] = Str::slug($data['title'], '-');
+
+        $post = Post::findOrFail(id);
+        if($request->hasFile('image')){
+            $fileName = $data['title']. '.' .$data['image']->extension();
+            Storage::delete(storage_path('app/public/'.$post->image));
+            $data['image'] = $data['image']->storeAs('posts', $fileName, 'public');
+        }
+
+        $post->update($data);
+
+        return redirect()->route('posts.index');
     }
 
     /**
@@ -79,6 +122,9 @@ class PostController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $post = Post::findOrFail($id);
+        Storage::delete(storage_path('app/public/'.$post->image));
+        $post->delete();
+        return redirect()->route('posts.index');
     }
 }
