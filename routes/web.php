@@ -24,3 +24,4 @@ require __DIR__.'/auth.php';
 
 Route::resource('users', \App\Http\Controllers\UserController::class);
 Route::resource('posts', \App\Http\Controllers\PostController::class);
+Route::resource('permissions', \App\Http\Controllers\PermissionController::class)->parameter('permissions', 'role');

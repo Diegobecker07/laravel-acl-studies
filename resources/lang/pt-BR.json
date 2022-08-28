@@ -1,4 +1,9 @@
 {
     "publish": "Publicado",
-    "draft": "Rascunho"
+    "draft": "Rascunho",
+    "Read": "Ler",
+    "Edit": "Editar",
+    "Delete": "Excluir",
+    "Create": "Criar",
+    "Write": "Escrever"
 }

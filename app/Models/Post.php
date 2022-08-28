@@ -45,8 +45,11 @@ class Post extends Model
 
     public function setImageAttribute($value)
     {
-        $this->attributes['image'] = explode('storage/', $value)[1];
-        $this->attributes['image'] = $value;
+        try {
+            $this->attributes['image'] = explode('storage/', $value)[1];
+        }catch (\Exception $e) {
+            $this->attributes['image'] = $value;
+        }
     }
 
     public function uploadImage($data)

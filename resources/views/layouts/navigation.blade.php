@@ -22,6 +22,11 @@
                             {{ __('Posts') }}
                         </x-nav-link>
                     @endcan
+                    @if (Auth::check() && Auth::user()->hasRole('Super Admin'))
+                        <x-nav-link :href="route('permissions.index')" :active="request()->routeIs('permissions.*')">
+                            {{ __('Permissões') }}
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
